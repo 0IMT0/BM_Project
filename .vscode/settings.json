@@ -1,0 +1,13 @@
+{
+    "sqltools.connections": [
+        {
+            "server": "eee-aesg-gh.ds.strath.ac.uk",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "ElexonData",
+            "username": "ElexonDataReadOnly",
+            "database": "ElexonData",
+            "password": "tr3BN9bKoA8kPe"
+        }
+    ]
+}
