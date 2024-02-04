@@ -1,0 +1,2 @@
+Access virtual enviroment: .\venv\Scripts\Activate
+deactivate virtual enviroment: deactivate
