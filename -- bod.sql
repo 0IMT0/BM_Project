@@ -3,4 +3,4 @@ select bmra_bod.ts1, bmra_bod.ts2, bmra_bod.nn, bmra_bod.op, bmra_bod.bp, bmra_b
 from bmra_bod
 left join bmra_bmu
     on bmra_bod.bmu_id = bmra_bmu.id
-where ts1 = '2023-01-18 03:00';
+where bmra_bod.ts1 = '2023-01-18 03:00';

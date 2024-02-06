@@ -3,7 +3,7 @@ select bmra_bod.nn, bmra_bod.op, bmra_bod.bp, bmra_bod.vb1, bmra_bod.vb2, bmra_b
 from bmra_bod
 left join bmra_bmu
     on bmra_bod.bmu_id = bmra_bmu.id
-where ts1 = '2023-01-18 03:00'
-    and nn > 0
-    and not (op = 0 AND bp = 0 AND vb1 = 0 AND vb2 = 0)
-order by op;
+where bmra_bod.ts1 = '2023-01-18 03:00'
+    and bmra_bod.nn > 0
+    and not (bmra_bod.op = 0 AND bmra_bod.bp = 0 AND bmra_bod.vb1 = 0 AND bmra_bod.vb2 = 0)
+order by bmra_bod.op;

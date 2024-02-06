@@ -1,0 +1,12 @@
+SQL Scripts:
+-- bids: 
+-- boalf_merged:
+-- bod:
+-- mel:
+-- offers: 
+
+Python Scripts:
+* code_tester: Simply used to test and run snippets of code.
+* database_access: Used to access the university database which stores all the Elexon data. 
+* database_collector: Stores all the functions used to collect data from the database and store it all in pandas data frames.
+* skiprate_filter: Used to filter through, manipulate and order all the needed data to analyse skiprates for a set time frame.

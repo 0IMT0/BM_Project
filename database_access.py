@@ -1,7 +1,10 @@
 # Personal code to access database:
 from sqlalchemy import create_engine
 
+#----------------------------------------------------------------------------------------------------------------#
+
 def database_login():   # Personal code for database access.
+    
     db_user = 'ElexonDataReadOnly'
     db_host = 'eee-aesg-gh.ds.strath.ac.uk'
     db_password = 'tr3BN9bKoA8kPe'
@@ -10,6 +13,7 @@ def database_login():   # Personal code for database access.
     engine = create_engine(db_url)
     return engine
 
+#----------------------------------------------------------------------------------------------------------------#
 
 # Provided code to access:
 # import psycopg2
