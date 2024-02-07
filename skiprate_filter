@@ -28,7 +28,7 @@ def datetime_to_string(df):
     return df
 
 #----------------------------------------------------------------------------------------------------------------#
-# MAIN SECTION OF SCRIPT #
+# MAIN SECTION OF SKIPRATE SCRIPT #
 #----------------------------------------------------------------------------------------------------------------#
 
 #PLEASE INSERT the date/times you would like to inspect (YYYY-MM-DD hh:mm)
