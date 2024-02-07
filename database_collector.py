@@ -19,7 +19,7 @@ def boalf_data_collector(date_str):
     # Execute SQL query and read the data into a DataFrame
     boalf_data = pd.read_sql(sql_bmra_boalf, database_login())
     # Display the filtered DataFrame
-    print(boalf_data)
+    print('-boalf done-')
     return boalf_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -38,7 +38,7 @@ def bod_data_collector(date_str):
     # Execute your SQL query and read the data into a DataFrame
     bod_data = pd.read_sql(sql_bmra_bod, database_login())
     # Display DataFrame
-    print(bod_data)
+    print('-bod check-')
     return bod_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -60,7 +60,7 @@ def offers_data_collector(date_str):
     # Execute SQL query and read the data into a DataFrame
     offers_data = pd.read_sql(sql_bmra_offers, database_login())
     # Display the filtered DataFrame
-    print(offers_data)
+    print('-offers check-')
     return offers_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -82,7 +82,7 @@ def bids_data_collector(date_str):
     # Execute SQL query and read the data into a DataFrame
     bids_data = pd.read_sql(sql_bmra_bids, database_login())
     # Display the filtered DataFrame
-    print(bids_data)
+    print('-bids check-')
     return bids_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -101,5 +101,5 @@ def mel_data_collector(date_str):
     # Execute SQL query and read the data into a DataFrame
     mel_data = pd.read_sql(sql_bmra_mel, database_login())
     # Display the filtered DataFrame
-    print(mel_data)
+    print('-mel done-')
     return mel_data

@@ -33,16 +33,17 @@ def datetime_to_string(df):
 
 #PLEASE INSERT the date/times you would like to inspect (YYYY-MM-DD hh:mm)
 date_str_list = [
-    '2023-01-18 03:00',
-    '2023-01-18 12:00',
-    '2024-01-17 03:00',
-    '2024-01-17 12:00', 
-    '2023-09-27 12:00', # Windy day (storm Agnes)
+    #'2023-01-18 03:00',
+    #'2023-01-18 12:00',
+    #'2024-01-17 03:00',
+    #'2024-01-17 12:00', 
+    #'2023-09-27 12:00', # Windy day (storm Agnes)
     '2023-03-05 12:00', # None-windy day 
     # Add more dates as needed
 ]
 
 for date_str in date_str_list:
+    print(date_str)
     # Apply timezone conversion to DataFrames
     boalf_df = datetime_to_string(boalf_data_collector(date_str))
     bod_df = datetime_to_string(bod_data_collector(date_str))
@@ -56,7 +57,7 @@ for date_str in date_str_list:
     # Format the filename with the current date
     date_name = datetime.strptime(date_str, '%Y-%m-%d %H:%M')
     formatted_date_str = date_name.strftime('%Y-%m-%d_%H%M')
-    excel_file_path = f'data_{formatted_date_str}.xlsx'
+    excel_file_path = f'{formatted_date_str}.xlsx'
 
     with pd.ExcelWriter(excel_file_path, engine='openpyxl') as writer:
         boalf_df.to_excel(writer, sheet_name='boalf', index=False)
