@@ -5,8 +5,50 @@ SQL Scripts:
 -- mel:
 -- offers: 
 
+#----------------------------------------------------------------------------------------------------------------#
+
 Python Scripts:
 * code_tester: Simply used to test and run snippets of code.
 * database_access: Used to access the university database which stores all the Elexon data. 
 * database_collector: Stores all the functions used to collect data from the database and store it all in pandas data frames.
 * skiprate_filter: Used to filter through, manipulate and order all the needed data to analyse skiprates for a set time frame.
+
+#----------------------------------------------------------------------------------------------------------------#
+
+Old working Code function:
+def ve_to_offers(mel_df, offers_df): # Transfer ve values to the offers data frame
+    if 'mel_ve' not in offers_df.columns:
+        merged_df = pd.merge(offers_df, mel_df[['bmu_id', 've']], left_on='id', right_on='bmu_id', how='left')
+        merged_df.drop(columns=['bmu_id'], inplace=True)
+        merged_df.rename(columns={'ve': 'mel_ve'}, inplace=True)
+        # Drop duplicates after the merge
+        merged_df.drop_duplicates(inplace=True)
+        return merged_df
+    else:
+        return offers_df
+    
+def vf_to_bids(mil_df, bids_df): # Transfer vf values to the offers data frame
+    if 'mil_vf' not in bids_df.columns:
+        merged_df = pd.merge(bids_df, mil_df[['bmu_id', 'vf']], left_on='id', right_on='bmu_id', how='left')
+        merged_df.drop(columns=['bmu_id'], inplace=True)
+        merged_df.rename(columns={'vf': 'mil_vf'}, inplace=True)
+        # Drop duplicates after the merge
+        merged_df.drop_duplicates(inplace=True)
+        return merged_df
+    else:
+        return bids_df
+    
+def vp_to_offers_bids(fpn_df, target_df, target_df_name='offers'): # target_df_name is just for informational printouts
+    # Ensure 'vp' column is not already present in the target DataFrame
+    if 'vp' not in target_df.columns:
+        # Perform the merge operation
+        merged_df = pd.merge(target_df, fpn_df[['bmu_id', 'vp']], left_on='id', right_on='bmu_id', how='left')
+        
+        # Drop the 'bmu_id' column to avoid duplication and rename the 'vp' column if necessary
+        merged_df.drop(columns=['bmu_id'], inplace=True)
+        
+        print(f"'vp' column successfully merged into {target_df_name} DataFrame.")
+        return merged_df
+    else:
+        print(f"'vp' column already exists in {target_df_name} DataFrame.")
+        return target_df

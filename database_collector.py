@@ -38,7 +38,7 @@ def bod_data_collector(date_str):
     # Execute your SQL query and read the data into a DataFrame
     bod_data = pd.read_sql(sql_bmra_bod, database_login())
     # Display DataFrame
-    print('-bod check-')
+    print('-bod done-')
     return bod_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -60,7 +60,7 @@ def offers_data_collector(date_str):
     # Execute SQL query and read the data into a DataFrame
     offers_data = pd.read_sql(sql_bmra_offers, database_login())
     # Display the filtered DataFrame
-    print('-offers check-')
+    print('-offers done-')
     return offers_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -82,7 +82,7 @@ def bids_data_collector(date_str):
     # Execute SQL query and read the data into a DataFrame
     bids_data = pd.read_sql(sql_bmra_bids, database_login())
     # Display the filtered DataFrame
-    print('-bids check-')
+    print('-bids done-')
     return bids_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -95,7 +95,8 @@ def mel_data_collector(date_str):
     from bmra_mellevel
     left join bmra_mel
         on bmra_mellevel.mel_id = bmra_mel.id
-    where bmra_mellevel.ts = '{date_str}';
+    where bmra_mellevel.ts = '{date_str}'
+    order by bmra_mellevel.ts;
     """
 
     # Execute SQL query and read the data into a DataFrame
@@ -103,3 +104,43 @@ def mel_data_collector(date_str):
     # Display the filtered DataFrame
     print('-mel done-')
     return mel_data
+
+#----------------------------------------------------------------------------------------------------------------#
+
+def mil_data_collector(date_str):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_mil = f"""
+    select bmra_millevel.ts, bmra_millevel.vf, bmra_mil.bmu_id
+    from bmra_millevel
+    left join bmra_mil
+        on bmra_millevel.mil_id = bmra_mil.id
+    where bmra_millevel.ts = '{date_str}'
+    order by bmra_millevel.ts;
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    mil_data = pd.read_sql(sql_bmra_mil, database_login())
+    # Display the filtered DataFrame
+    print('-mil done-')
+    return mil_data
+
+#----------------------------------------------------------------------------------------------------------------#
+
+def fpn_data_collector(date_str):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_fpn = f"""
+    select bmra_fpnlevel.ts, bmra_fpnlevel.vp, bmra_fpn.bmu_id
+    from bmra_fpnlevel
+    left join bmra_fpn
+        on bmra_fpn.id = bmra_fpnlevel.fpn_id
+    where bmra_fpnlevel.ts = '{date_str}'
+    order by bmra_fpnlevel.ts;
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    fpn_data = pd.read_sql(sql_bmra_fpn, database_login())
+    # Display the filtered DataFrame
+    print('-fpn done-')
+    return fpn_data
