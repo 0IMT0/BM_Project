@@ -68,7 +68,7 @@ for date_str in date_str_list:
     # Format the filename with the current date
     date_name = datetime.strptime(date_str, '%Y-%m-%d %H:%M')
     formatted_date_str = date_name.strftime('%Y-%m-%d_%H%M')
-    excel_file_path = f'{formatted_date_str}.xlsx'
+    excel_file_path = f'skiprate_{formatted_date_str}.xlsx'
 
     with pd.ExcelWriter(excel_file_path, engine='openpyxl') as writer:
         boalf_df.to_excel(writer, sheet_name='boalf', index=False)
