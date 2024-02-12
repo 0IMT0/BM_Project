@@ -2,6 +2,8 @@ from database_access import database_login
 import pandas as pd
 
 #----------------------------------------------------------------------------------------------------------------#
+# skiprate_filter
+#----------------------------------------------------------------------------------------------------------------#
 
 def boalf_data_collector(date_str):
 
@@ -18,7 +20,6 @@ def boalf_data_collector(date_str):
 
     # Execute SQL query and read the data into a DataFrame
     boalf_data = pd.read_sql(sql_bmra_boalf, database_login())
-    # Display the filtered DataFrame
     print('-boalf done-')
     return boalf_data
 
@@ -37,7 +38,6 @@ def bod_data_collector(date_str):
 
     # Execute your SQL query and read the data into a DataFrame
     bod_data = pd.read_sql(sql_bmra_bod, database_login())
-    # Display DataFrame
     print('-bod done-')
     return bod_data
 
@@ -59,7 +59,6 @@ def offers_data_collector(date_str):
 
     # Execute SQL query and read the data into a DataFrame
     offers_data = pd.read_sql(sql_bmra_offers, database_login())
-    # Display the filtered DataFrame
     print('-offers done-')
     return offers_data
 
@@ -81,7 +80,6 @@ def bids_data_collector(date_str):
 
     # Execute SQL query and read the data into a DataFrame
     bids_data = pd.read_sql(sql_bmra_bids, database_login())
-    # Display the filtered DataFrame
     print('-bids done-')
     return bids_data
 
@@ -101,7 +99,6 @@ def mel_data_collector(date_str):
 
     # Execute SQL query and read the data into a DataFrame
     mel_data = pd.read_sql(sql_bmra_mel, database_login())
-    # Display the filtered DataFrame
     print('-mel done-')
     return mel_data
 
@@ -121,7 +118,6 @@ def mil_data_collector(date_str):
 
     # Execute SQL query and read the data into a DataFrame
     mil_data = pd.read_sql(sql_bmra_mil, database_login())
-    # Display the filtered DataFrame
     print('-mil done-')
     return mil_data
 
@@ -141,6 +137,38 @@ def fpn_data_collector(date_str):
 
     # Execute SQL query and read the data into a DataFrame
     fpn_data = pd.read_sql(sql_bmra_fpn, database_login())
-    # Display the filtered DataFrame
     print('-fpn done-')
     return fpn_data
+
+#----------------------------------------------------------------------------------------------------------------#
+# BM_analyser 
+#----------------------------------------------------------------------------------------------------------------#
+
+def boav_data_collector(start_date, end_date):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_boav = f"""
+    select*
+    from bmra_boav
+    where bmra_boav.ts >= '{start_date}'
+        and bmra_boav.ts <= '{end_date}';
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    boav_data = pd.read_sql(sql_bmra_boav, database_login())
+    print('-boav done-')
+    return boav_data
+
+def boalf2_data_collector(start_date, end_date):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_boalf = f"""
+    select*
+    from bmra_boalflevel
+    where bmra_boalflevel.ts >= '{start_date}'
+        and bmra_boalflevel.ts <= '{end_date}';
+    """
+    # Execute SQL query and read the data into a DataFrame
+    boalf2_data = pd.read_sql(sql_bmra_boalf, database_login())
+    print('-boalf2 done-')
+    return boalf2_data

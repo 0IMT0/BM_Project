@@ -4,7 +4,7 @@ from datetime import datetime
 from database_collector import boalf_data_collector, bod_data_collector, offers_data_collector, bids_data_collector, mel_data_collector, mil_data_collector, fpn_data_collector
     
 #----------------------------------------------------------------------------------------------------------------#
-# ADDITIONAL FUNCTIONS
+# FUNCTIONS 
 #----------------------------------------------------------------------------------------------------------------#
 
 def update_offers(offers_df, mel_df, fpn_df):
@@ -36,7 +36,7 @@ def datetime_to_string(df):
     return df
 
 #----------------------------------------------------------------------------------------------------------------#
-# MAIN SECTION OF SKIPRATE SCRIPT #
+# MAIN SECTION OF SKIPRATE SCRIPT 
 #----------------------------------------------------------------------------------------------------------------#
 
 #PLEASE INSERT the date/times you would like to inspect (YYYY-MM-DD hh:mm)
