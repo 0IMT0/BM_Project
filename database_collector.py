@@ -159,6 +159,8 @@ def boav_data_collector(start_date, end_date):
     print('-boav done-')
     return boav_data
 
+#----------------------------------------------------------------------------------------------------------------#
+
 def boalf2_data_collector(start_date, end_date):
 
     # SQL query with the WHERE clause for the specified time frame
@@ -172,3 +174,20 @@ def boalf2_data_collector(start_date, end_date):
     boalf2_data = pd.read_sql(sql_bmra_boalf, database_login())
     print('-boalf2 done-')
     return boalf2_data
+
+#----------------------------------------------------------------------------------------------------------------#
+
+def ebocf_data_collector(start_date, end_date):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_ebocf = f"""
+    select*
+    from bmra_ebocf
+    where bmra_ebocf.sd >= '{start_date}'
+        and bmra_ebocf.sd <= '{end_date}';
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    ebocf_data = pd.read_sql(sql_bmra_ebocf, database_login())
+    print('-ebocf done-')
+    return ebocf_data

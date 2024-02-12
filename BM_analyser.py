@@ -1,7 +1,7 @@
 import pandas as pd
-from database_collector import boav_data_collector, boalf2_data_collector
+from database_collector import boav_data_collector, boalf2_data_collector, ebocf_data_collector
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta  # Add this import
+from dateutil.relativedelta import relativedelta 
 
 #----------------------------------------------------------------------------------------------------------------#
 # FUNCTIONS
@@ -21,6 +21,24 @@ def calculate_total_cost(boav_df):
 
     return total_ov, total_bv, final_cost
 
+#----------------------------------------------------------------------------------------------------------------#
+
+def calculate_total_cost_ebocf(ebocf_df):
+    # Check if the required columns are present in the DataFrame
+    if 'oc' not in ebocf_df.columns or 'bc' not in ebocf_df.columns:
+        raise ValueError("DataFrame should have 'oc' and 'bc' columns")
+
+    # Calculate total ov and bv values
+    total_oc = ebocf_df['oc'].sum()
+    total_bc = ebocf_df['bc'].sum()
+
+    # Calculate final cost by adding ov and bv
+    final_cost_ebocf = total_oc + total_bc
+
+    return total_oc, total_bc, final_cost_ebocf
+
+#----------------------------------------------------------------------------------------------------------------#
+
 def count_bids_offers(boalf2_df):
     # Check if the DataFrame is not empty
     if boalf2_df.empty:
@@ -31,6 +49,8 @@ def count_bids_offers(boalf2_df):
 
     return total_rows
 
+#----------------------------------------------------------------------------------------------------------------#
+
 def save_to_excel(data):
     # Create a DataFrame with the data
     df = pd.DataFrame(data)
@@ -39,6 +59,8 @@ def save_to_excel(data):
     file_name = f"BM_analysis.xlsx"
     df.to_excel(file_name)
     print(f"Data saved to {file_name}")
+
+#----------------------------------------------------------------------------------------------------------------#
 
 def generate_monthly_date_ranges(start_year, start_month, end_year, end_month):
     # Define start and end dates
@@ -76,13 +98,20 @@ for i, (start_date, end_date) in enumerate(date_ranges):
     print(f"{start_date} to {end_date}")
 
     boav_df = boav_data_collector(start_date, end_date)
+    ebocf_df = ebocf_data_collector(start_date, end_date)
     boalf2_df = boalf2_data_collector(start_date, end_date)
 
-    # Cost outputs
+    # Volume outputs (MWh)
     total_ov, total_bv, final_cost = calculate_total_cost(boav_df)
     print(f"Total ov value: {round(total_ov, 2)}")
     print(f"Total bv value: {round(total_bv, 2)}")
     print(f"Final cost: {round(final_cost, 2)}")
+
+    #Cost outputs
+    total_oc, total_bc, final_cost_ebocf = calculate_total_cost_ebocf(ebocf_df)
+    print(f"Total ov value: {round(total_oc, 2)}")
+    print(f"Total bv value: {round(total_bc, 2)}")
+    print(f"Final cost: {round(final_cost_ebocf, 2)}")
 
     # Activity outputs
     total_BOD = count_bids_offers(boalf2_df)
@@ -94,8 +123,11 @@ for i, (start_date, end_date) in enumerate(date_ranges):
         'End Date': end_date,
         'Total OV Value': round(total_ov, 2),
         'Total BV Value': round(total_bv, 2),
-        'Final Cost': round(final_cost, 2),
-        'Total B&O': total_BOD
+        'Final Volume': round(final_cost, 2),
+        'Total OC Value': round(total_oc, 2),
+        'Total BC Value': round(total_bc, 2),
+        'Final Cost': round(final_cost_ebocf, 2), 
+        'Total # B&O': total_BOD
     })
 
 # Save all data to Excel
