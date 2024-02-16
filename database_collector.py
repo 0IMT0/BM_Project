@@ -191,3 +191,23 @@ def ebocf_data_collector(start_date, end_date):
     ebocf_data = pd.read_sql(sql_bmra_ebocf, database_login())
     print('-ebocf done-')
     return ebocf_data
+
+#----------------------------------------------------------------------------------------------------------------#
+
+def fpn_data_collector(start_date, end_date, bmu):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_fpn = f"""
+    select bmra_fpnlevel.ts, bmra_fpnlevel.vp
+        from bmra_fpnlevel
+    inner join bmra_fpn
+        on bmra_fpn.id = bmra_fpnlevel.fpn_id
+    where bmra_fpn.sd >= '{start_date}'
+        and bmra_fpnlevel.ts <= '{end_date}'
+        and bmu_id = '{bmu}'
+    order by bmra_fpnlevel.ts;
+    """
+    # Execute SQL query and read the data into a DataFrame
+    fpn_data = pd.read_sql(sql_bmra_fpn, database_login())
+    print('-fpn done-')
+    return fpn_data
