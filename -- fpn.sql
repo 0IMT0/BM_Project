@@ -1,5 +1,5 @@
--- fpn
-select bmra_fpnlevel.ts, bmra_fpnlevel.vp, bmra_fpn.bmu_id
+-- fpnlevel
+select bmra_fpnlevel.ts, bmra_fpnlevel.vp
     from bmra_fpnlevel
 left join bmra_fpn
     on bmra_fpn.id = bmra_fpnlevel.fpn_id

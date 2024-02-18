@@ -150,8 +150,8 @@ def boav_data_collector(start_date, end_date):
     sql_bmra_boav = f"""
     select*
     from bmra_boav
-    where bmra_boav.ts >= '{start_date}'
-        and bmra_boav.ts <= '{end_date}';
+    where bmra_boav.sd >= '{start_date}'
+        and bmra_boav.sd <= '{end_date}';
     """
 
     # Execute SQL query and read the data into a DataFrame
@@ -172,7 +172,7 @@ def boalf2_data_collector(start_date, end_date):
     """
     # Execute SQL query and read the data into a DataFrame
     boalf2_data = pd.read_sql(sql_bmra_boalf, database_login())
-    print('-boalf2 done-')
+    print('-boalf done-')
     return boalf2_data
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -193,17 +193,19 @@ def ebocf_data_collector(start_date, end_date):
     return ebocf_data
 
 #----------------------------------------------------------------------------------------------------------------#
+# Curtailment Tracking 
+#----------------------------------------------------------------------------------------------------------------#
 
 def fpn_data_collector(start_date, end_date, bmu):
 
     # SQL query with the WHERE clause for the specified time frame
     sql_bmra_fpn = f"""
-    select bmra_fpnlevel.ts, bmra_fpnlevel.vp
+    select bmra_fpnlevel.ts, bmra_fpn.sd, bmra_fpn.sp, bmra_fpnlevel.vp
         from bmra_fpnlevel
     inner join bmra_fpn
         on bmra_fpn.id = bmra_fpnlevel.fpn_id
     where bmra_fpn.sd >= '{start_date}'
-        and bmra_fpnlevel.ts <= '{end_date}'
+        and bmra_fpn.sd < '{end_date}'
         and bmu_id = '{bmu}'
     order by bmra_fpnlevel.ts;
     """
@@ -211,3 +213,46 @@ def fpn_data_collector(start_date, end_date, bmu):
     fpn_data = pd.read_sql(sql_bmra_fpn, database_login())
     print('-fpn done-')
     return fpn_data
+
+#----------------------------------------------------------------------------------------------------------------#
+
+def boalf3_data_collector(start_date, end_date, bmu):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_boalf = f"""
+    select bmra_boalflevel.ts, bmra_boalflevel.va, bmra_boalf.bmu_id 
+        from bmra_boalflevel
+    left join bmra_boalf
+        on bmra_boalf.id = bmra_boalflevel.boalf_id
+    where bmra_boalflevel.ts >= '{start_date}'
+        and bmra_boalflevel.ts < '{end_date}'
+        and bmu_id = '{bmu}'
+    order by bmra_boalflevel.ts;
+    """
+    # Execute SQL query and read the data into a DataFrame
+    boalf_data = pd.read_sql(sql_bmra_boalf, database_login())
+    print('-boalf done-')
+    return boalf_data
+
+#----------------------------------------------------------------------------------------------------------------#
+# Curtailment Analyser 
+#----------------------------------------------------------------------------------------------------------------#
+
+def boav2_data_collector(start_date, end_date):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_boav = f"""
+    select bmra_boav.ts, bmra_boav.nn, bmra_boav.bv, bmra_boav.bmu_id, bmra_bmu.type_id
+        from bmra_boav
+    left join bmra_bmu
+        on bmra_bmu.id = bmra_boav.bmu_id
+    where bmra_boav.ts >= '{start_date}'
+        and bmra_boav.ts < '{end_date}'
+        and (bmra_bmu.type_id = 'WON' OR bmra_bmu.type_id = 'WOFF')
+    order by bmra_boav.ts;
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    boav_data = pd.read_sql(sql_bmra_boav, database_login())
+    print('-boav done-')
+    return boav_data
