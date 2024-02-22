@@ -235,6 +235,43 @@ def boalf3_data_collector(start_date, end_date, bmu):
     return boalf_data
 
 #----------------------------------------------------------------------------------------------------------------#
+
+def abv_data_collector(start_date, end_date, bmu):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_abv = f"""
+    select distinct p114_abv.sd as sd, p114_abp.sp as sp, vol 
+    from p114_abv 
+    left join p114_abp 
+    on p114_abv.id = p114_abp.abv_id 
+    left join p114_sr_type 
+    on p114_abv.sr_type_id = p114_sr_type.id 
+    inner join 
+    (SELECT sd, sp, max(p114_sr_type.order) as ordinal 
+    FROM p114_abv 
+    left join p114_abp 
+    on p114_abv.id = p114_abp.abv_id 
+    left join p114_sr_type 
+    on p114_abv.sr_type_id = p114_sr_type.id 
+    where bmu_id = '{bmu}' 
+    and p114_abv.sd >= '{start_date}' 
+    and p114_abv.sd < '{end_date}' 
+    group by sd, sp 
+    order by sd, sp) as inner_query 
+    on inner_query.sd = p114_abv.sd 
+    and inner_query.sp = p114_abp.sp 
+    and inner_query.ordinal = p114_sr_type.order 
+    where bmu_id = '{bmu}' 
+    and p114_abv.sd >= '{start_date}' 
+    and p114_abv.sd < '{end_date}' 
+    order by sd, sp;
+    """
+    # Execute SQL query and read the data into a DataFrame
+    abv_data = pd.read_sql(sql_bmra_abv, database_login())
+    print('-abv done-')
+    return abv_data
+
+#----------------------------------------------------------------------------------------------------------------#
 # Curtailment Analyser 
 #----------------------------------------------------------------------------------------------------------------#
 
@@ -247,7 +284,7 @@ def boav2_data_collector(start_date, end_date):
     left join bmra_bmu
         on bmra_bmu.id = bmra_boav.bmu_id
     where bmra_boav.ts >= '{start_date}'
-        and bmra_boav.ts < '{end_date}'
+        and bmra_boav.ts <= '{end_date}'
         and (bmra_bmu.type_id = 'WON' OR bmra_bmu.type_id = 'WOFF')
     order by bmra_boav.ts;
     """

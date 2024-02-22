@@ -1,0 +1,21 @@
+from datetime import datetime, timedelta
+
+def merge_sd_sp_to_timestamp(sd, sp):
+    # Convert sd and sp to datetime and timedelta objects
+    date_obj = datetime.strptime(sd, '%Y-%m-%d')
+    time_delta = timedelta(minutes=(int(sp) - 1) * 30)
+
+    # Calculate timestamp by adding timedelta to date
+    timestamp = date_obj + time_delta
+
+    # Format timestamp as YYYY-MM-DD hh:mm
+    timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M')
+
+    return timestamp_str
+
+# Example usage:
+sd_example = '2023-01-01'
+sp_example = '48'
+
+timestamp_example = merge_sd_sp_to_timestamp(sd_example, sp_example)
+print(timestamp_example)
