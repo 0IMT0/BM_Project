@@ -3,6 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons
 from datetime import datetime, timedelta
+import numpy as np
+
+#----------------------------------------------------------------------------------------------------------------#
+# FUNCTIONS
+#----------------------------------------------------------------------------------------------------------------#
 
 # Define the function to merge sd and sp to timestamp
 def merge_sd_sp_to_timestamp(sd, sp):
@@ -12,18 +17,7 @@ def merge_sd_sp_to_timestamp(sd, sp):
     timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M')
     return timestamp_str
 
-# Define the variables for interval selection and BMU ID
-start_date = '2023-01-02'  # Example: 'YYYY-MM-DD'
-end_date = '2023-01-10'  # Must be the day above the final day you desire
-bmu = 'T_DNLWW-1'  
-# Windfarms: 
-#   'E_MOYEW-1' - FPN seems to be way above generation
-#   'T_FARR-1' - FPN seems to correlate with generation
-#   'T_GLNKW-1' - FPN seems to be way above generation
-#   'T_DUNGW-1' - FPN seems to be way above generation
-#   'T_STLGW-1' - FPN seems to be way above generation
-#   'E_HLGLW-1' - FPN seems to correlate with generation
-#   'T_DNLWW-1' - FPN seems to correlate with generation
+#----------------------------------------------------------------------------------------------------------------#
 
 # Function to convert timestamp to matplotlib-compatible format
 def convert_to_mpl_datetime(ts_str):
@@ -77,10 +71,62 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
 
     plt.show()
 
+#----------------------------------------------------------------------------------------------------------------#
+
+def calculate_percentage_difference(fpn_df, abv_df):
+    # Group by 'sd' and 'sp' in FPN data and calculate the average for 'vp'
+    fpn_avg_df = fpn_df.groupby(['sd', 'sp'], as_index=False)['vp'].mean()
+    print(fpn_avg_df)
+
+    # Merge datasets on 'sd' and 'sp'
+    merged_df = pd.merge(fpn_avg_df, abv_df, on=['sd', 'sp'], how='inner', suffixes=('_fpn', '_abv'))
+    print(merged_df)
+
+    # Calculate percentage difference, handle division by zero
+    merged_df['percentage_difference'] = (
+        ((merged_df['vp'] - merged_df['vol']) / merged_df['vp']).replace([np.inf, -np.inf], np.nan).fillna(0) * 100)
+
+    return merged_df[['sd', 'sp', 'percentage_difference']]
+
+
+#----------------------------------------------------------------------------------------------------------------#
+# MAIN SECTION OF SKIPRATE SCRIPT 
+#----------------------------------------------------------------------------------------------------------------#
+
+# Define the variables for interval selection and BMU ID
+start_date = '2023-01-02'  # Example: 'YYYY-MM-DD'
+end_date = '2023-01-10'  # Must be the day above the final day you desire
+bmu = 'T_DNLWW-1'  
+# Windfarms: 
+#   'E_MOYEW-1' - FPN seems to be way above generation
+#   'T_FARR-1' - FPN seems to correlate with generation
+#   'T_GLNKW-1' - FPN seems to be way above generation
+#   'T_DUNGW-1' - FPN seems to be way above generation
+#   'T_STLGW-1' - FPN seems to be way above generation
+#   'E_HLGLW-1' - FPN seems to correlate with generation
+#   'T_DNLWW-1' - FPN seems to correlate with generation
+
 # Collect the dataset using the functions for the BMU
 fpn_df = fpn_data_collector(start_date, end_date, bmu)
 boalf_df = boalf3_data_collector(start_date, end_date, bmu)
 abv_df = abv_data_collector(start_date, end_date, bmu)
 
 # Create plot for BMU comparison
-BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+# BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+
+# Create a new dataframe with percentage differences
+percentage_diff_df = calculate_percentage_difference(fpn_df, abv_df)
+
+# Calculate average percentage difference
+average_percentage_diff = percentage_diff_df['percentage_difference'].mean()
+
+# Print the results
+print("FPN Data:")
+print(fpn_df)
+print("\nBOALF Data:")
+print(boalf_df)
+print("\nABV Data:")
+print(abv_df)
+print("\nPercentage Difference Data:")
+print(percentage_diff_df)
+print(f'\nAverage Percentage Difference: {average_percentage_diff}%')
