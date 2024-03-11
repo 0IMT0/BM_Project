@@ -17,9 +17,9 @@ def calculate_total_volume(boav_df):
     total_bv = boav_df['bv'].sum()
 
     # Calculate final cost by adding ov and bv
-    final_cost = total_ov + total_bv
+    final_volume = total_ov + total_bv
 
-    return total_ov, total_bv, final_cost
+    return total_ov, total_bv, final_volume
 
 #----------------------------------------------------------------------------------------------------------------#
 
@@ -92,7 +92,7 @@ def generate_monthly_date_ranges(start_year, start_month, end_year, end_month):
 # MAIN SECTION OF SKIPRATE SCRIPT 
 #----------------------------------------------------------------------------------------------------------------#
 
-date_ranges_with_time, date_ranges_without_time = generate_monthly_date_ranges(2020, 1, 2024, 1)
+date_ranges_with_time, date_ranges_without_time = generate_monthly_date_ranges(2020, 1, 2024, 2)
 
 # Initialize a list to store all the data
 BM_data = []

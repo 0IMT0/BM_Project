@@ -141,7 +141,7 @@ def fpn_data_collector(date_str):
     return fpn_data
 
 #----------------------------------------------------------------------------------------------------------------#
-# BM_analyser 
+# BM_analyser_data
 #----------------------------------------------------------------------------------------------------------------#
 
 def boav_data_collector(start_date, end_date):
@@ -191,6 +191,25 @@ def ebocf_data_collector(start_date, end_date):
     ebocf_data = pd.read_sql(sql_bmra_ebocf, database_login())
     print('-ebocf done-')
     return ebocf_data
+
+#----------------------------------------------------------------------------------------------------------------#
+# BM_analyser_
+#----------------------------------------------------------------------------------------------------------------#
+
+def boalf_an_data_collector(start_date, end_date):
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_boalf = f"""
+    select*
+    from bmra_boalf
+    where ts >= '{start_date}'
+        and ts < '{end_date}'
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    boalf_data = pd.read_sql(sql_bmra_boalf, database_login())
+    print('-boalf done-')
+    return boalf_data
 
 #----------------------------------------------------------------------------------------------------------------#
 # Curtailment Tracking 
