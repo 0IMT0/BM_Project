@@ -23,6 +23,8 @@ def merge_sd_sp_to_timestamp(sd, sp):
 def convert_to_mpl_datetime(ts_str):
     return pd.to_datetime(ts_str).to_numpy()
 
+#----------------------------------------------------------------------------------------------------------------#
+
 # Function to create plot for BMU comparison
 def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -39,9 +41,17 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
 
     # Plot BOALF data
     if not boalf_df.empty:
-        line2, = ax.plot(boalf_df['ts'], boalf_df['va'], marker='o', label=f'{bmu} - BOALF', color='orange')
-        lines.append(line2)
-        labels.append(f'{bmu} - BOALF')
+        boalf_df['ts'] = pd.to_datetime(boalf_df['ts'])  # Convert 'ts' to datetime
+        boalf_df['time_diff'] = boalf_df['ts'].diff().dt.total_seconds() / 60.0  # Calculate time differences in minutes
+        split_indices = boalf_df[boalf_df['time_diff'] > 30].index.tolist()
+        split_indices.insert(0, 0)
+        split_indices.append(len(boalf_df))
+
+        for i in range(len(split_indices) - 1):
+            sub_boalf_df = boalf_df.iloc[split_indices[i]:split_indices[i + 1]]
+            line, = ax.plot(sub_boalf_df['ts'], sub_boalf_df['va'], marker='o', label=f'{bmu} - BOALF {i + 1}', color='orange')
+            lines.append(line)
+            labels.append(f'{bmu} - BOALF {i + 1}')
 
     # Plot ABV data
     if not abv_df.empty:
@@ -96,14 +106,14 @@ def calculate_percentage_difference(fpn_df, abv_df):
 # Define the variables for interval selection and BMU ID
 start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
 end_date = '2023-01-10'  # Must be the day above the final day you desire
-bmu = 'E_MOYEW-1'  
+bmu = 'E_HLGLW-1'  
 # Windfarms: 
-#   'E_MOYEW-1' - FPN seems to be way above generation
-#   'T_FARR-1' - FPN seems to correlate with generation
-#   'T_GLNKW-1' - FPN seems to be way above generation
-#   'T_DUNGW-1' - FPN seems to be way above generation
-#   'T_STLGW-1' - FPN seems to be way above generation
-#   'E_HLGLW-1' - FPN seems to correlate with generation
+#   'E_MOYEW-1' - FPN above 
+#   'T_FARR-1' - FPN over estimates
+#   'T_GLNKW-1' - FPN very good
+#   'T_DUNGW-1' - FPN above, evidence of turbine shut down.
+#   'T_STLGW-1' - FPN 
+#   'E_HLGLW-1' - FPN way above
 #   'T_DNLWW-1' - FPN seems to correlate with generation
 
 # Collect the dataset using the functions for the BMU
