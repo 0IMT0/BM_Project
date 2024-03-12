@@ -2,13 +2,13 @@ from database_access import database_login
 import pandas as pd
 
 # Specify the date for filtering (1 min interval)
-start_date = "2023-01-01 17:01:00+00"
-end_date = "2023-01-01 17:02:00+00"
+start_date = "2023-01-18 15:01:00+00"
+end_date = "2023-01-18 15:02:00+00"
 
 # Your SQL query with the WHERE clause for the specified date
 sql_bmra_bod = f"""
-SELECT nn, op, bp, vb1, vb2, bmu_id
-FROM public.bmra_bod
+SELECT*
+FROM bmra_bod
 WHERE ts >= '{start_date}' AND ts < '{end_date}';
 """
 # Execute your SQL query and read the data into a DataFrame

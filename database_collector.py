@@ -212,7 +212,7 @@ def boalf_an_data_collector(start_date, end_date):
     return boalf_data
 
 #----------------------------------------------------------------------------------------------------------------#
-# Curtailment Tracking 
+# Curtailment Tracking Plot
 #----------------------------------------------------------------------------------------------------------------#
 
 def fpn_data_collector(start_date, end_date, bmu):
@@ -312,3 +312,24 @@ def boav2_data_collector(start_date, end_date):
     boav_data = pd.read_sql(sql_bmra_boav, database_login())
     print('-boav done-')
     return boav_data
+
+#----------------------------------------------------------------------------------------------------------------#
+# Curtailment FPN validity
+#----------------------------------------------------------------------------------------------------------------#
+
+# Use the same as from Curtailment Tracking Plot + ...
+
+def bmuid_data_collector():
+
+    # SQL query with the WHERE clause for the specified time frame
+    sql_bmra_bmu = f"""
+    select id
+    from bmra_bmu
+    where (type_id = 'WON' OR type_id = 'WOFF')
+        and not id like 'C%'
+    """
+
+    # Execute SQL query and read the data into a DataFrame
+    bmu_data = pd.read_sql(sql_bmra_bmu, database_login())
+    print('-bmu done-')
+    return bmu_data

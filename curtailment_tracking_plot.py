@@ -83,20 +83,63 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
 
 #----------------------------------------------------------------------------------------------------------------#
 
-def calculate_percentage_difference(fpn_df, abv_df):
-    # Group by 'sd' and 'sp' in FPN data and calculate the average for 'vp'
-    fpn_avg_df = fpn_df.groupby(['sd', 'sp'], as_index=False)['vp'].mean()
-    # print(fpn_avg_df)
+def calculate_percentage_difference(fpn_df, boalf_df, abv_df):
+    # Extract BOALF intervals and create a list of intervals to exclude
+    boalf_intervals = boalf_df['ts']
+    exclude_intervals = []
+
+    for boalf_time in boalf_intervals:
+        boalf_start = boalf_time - timedelta(minutes=15)
+        boalf_end = boalf_time + timedelta(minutes=15)
+        exclude_intervals.append((boalf_start, boalf_end))
+
+    # Exclude intervals overlapping with BOALF times from FPN data
+    fpn_df['interval_start'] = pd.to_datetime(fpn_df['ts']) - timedelta(minutes=15)
+    fpn_df['interval_end'] = pd.to_datetime(fpn_df['ts']) + timedelta(minutes=15)
+    
+    # Handle the case where there are two values for a specific FPN 30-minute interval
+    fpn_df['vp'] = fpn_df.groupby(['sd', 'sp'])['vp'].transform('mean')
+    fpn_df = fpn_df.drop_duplicates(subset=['sd', 'sp'], keep='first')
+    
+    fpn_df = fpn_df[~fpn_df.apply(lambda row: any(((row['interval_start'] <= end) and (row['interval_end'] >= start))
+                                                  for start, end in exclude_intervals), axis=1)]
+
+    # Group by 'sd' and 'sp' in FPN data and calculate the sum for 'vp'
+    fpn_sum_df = fpn_df.groupby(['sd', 'sp'], as_index=False)['vp'].sum()
 
     # Merge datasets on 'sd' and 'sp'
-    merged_df = pd.merge(fpn_avg_df, abv_df, on=['sd', 'sp'], how='inner', suffixes=('_fpn', '_abv'))
-    # print(merged_df)
+    merged_df = pd.merge(fpn_sum_df, abv_df, on=['sd', 'sp'], how='inner', suffixes=('_fpn', '_abv'))
+
+    # Calculate total differences between 'vol' and 'vp'
+    total_vol = merged_df['vol'].sum()
+    total_vp = merged_df['vp'].sum()
 
     # Calculate percentage difference, handle division by zero
-    merged_df['percentage_difference'] = (
-        ((merged_df['vp'] - merged_df['vol']) / merged_df['vp']).replace([np.inf, -np.inf], np.nan).fillna(0) * 100)
+    percentage_difference = ((total_vol - total_vp) / total_vp)
+    percentage_difference = np.nan_to_num(percentage_difference) * 100
 
-    return merged_df[['sd', 'sp', 'percentage_difference']]
+    print(f'\nTotal ABV (vol): {total_vol} MW')
+    print(f'Total FPN (vp): {total_vp} MW')
+    print(f'Percentage Difference: {round(percentage_difference, 2)}%')
+
+#----------------------------------------------------------------------------------------------------------------#
+
+
+
+#----------------------------------------------------------------------------------------------------------------#
+
+def calculate_total_percentage_difference(fpn_df, abv_df):
+    # Calculate total differences between 'vol' and 'vp'
+    total_vol = abv_df['vol'].sum()
+    total_vp = fpn_df['vp'].sum()
+
+    # Calculate percentage difference, handle division by zero
+    percentage_difference = ((total_vol - total_vp) / total_vp)
+    percentage_difference = np.nan_to_num(percentage_difference) * 100
+
+    print(f'\nTotal Vol: {total_vol} MWh')
+    print(f'Total VP: {total_vp} MWh')
+    print(f'Percentage Difference: {round(percentage_difference, 2)}%')
 
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -105,32 +148,28 @@ def calculate_percentage_difference(fpn_df, abv_df):
 
 # Define the variables for interval selection and BMU ID
 start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
-end_date = '2023-01-10'  # Must be the day above the final day you desire
-bmu = 'E_HLGLW-1'  
-# Windfarms: 
-#   'E_MOYEW-1' - FPN above 
-#   'T_FARR-1' - FPN over estimates
-#   'T_GLNKW-1' - FPN very good
-#   'T_DUNGW-1' - FPN above, evidence of turbine shut down.
-#   'T_STLGW-1' - FPN 
-#   'E_HLGLW-1' - FPN way above
-#   'T_DNLWW-1' - FPN seems to correlate with generation
+end_date = '2023-02-01'  # Must be the day above the final day you desire
+bmu = 'T_FARR-1'  
+# Windfarms:                    10 days, 1 month (-ve: FPN larger than output)
+#   'E_MOYEW-1' - FPN above, -21.00%, -28.53%
+#   'T_FARR-1' - FPN over estimates, -67.72%, -24.6%
+#   'T_GLNKW-1' - FPN very good, 3.05%, 3.3%
+#   'T_DUNGW-1' - FPN above, evidence of turbine shut down, -13.59%, -10.62%
+#   'T_STLGW-1' - FPN potential gaming, -6.74%, -5.88%
+#   'E_HLGLW-1' - FPN way above, doesnt look like gaming, -31.71%, -35.09%
+#   'T_DNLWW-1' - FPN very good, 4.05%, 0.94% 
 
 # Collect the dataset using the functions for the BMU
 fpn_df = fpn_data_collector(start_date, end_date, bmu)
 boalf_df = boalf3_data_collector(start_date, end_date, bmu)
 abv_df = abv_data_collector(start_date, end_date, bmu)
-abv_df['vol'] = abv_df['vol'] * 2 # Counteract the MWh values of the real generation
+abv_df['vol'] = abv_df['vol'] * 2  # Counteract the MWh values of the real generation
 
 # Create a new dataframe with percentage differences
-percentage_diff_df = calculate_percentage_difference(fpn_df, abv_df)
-print("\nPercentage Difference Data:")
-#print(percentage_diff_df)
+calculate_percentage_difference(fpn_df, boalf_df, abv_df)
 
-# Calculate average percentage difference
-average_percentage_diff = percentage_diff_df['percentage_difference'].mean()
-print(f'\nAverage Percentage Difference: {round(average_percentage_diff,2)}%')
+calculate_total_percentage_difference(fpn_df, abv_df)
 
-# Create plot for BMU comparison
-BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+# Plot FPN, actual output, curtailment
+#BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
 
