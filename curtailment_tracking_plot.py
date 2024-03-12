@@ -76,11 +76,11 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
 def calculate_percentage_difference(fpn_df, abv_df):
     # Group by 'sd' and 'sp' in FPN data and calculate the average for 'vp'
     fpn_avg_df = fpn_df.groupby(['sd', 'sp'], as_index=False)['vp'].mean()
-    print(fpn_avg_df)
+    # print(fpn_avg_df)
 
     # Merge datasets on 'sd' and 'sp'
     merged_df = pd.merge(fpn_avg_df, abv_df, on=['sd', 'sp'], how='inner', suffixes=('_fpn', '_abv'))
-    print(merged_df)
+    # print(merged_df)
 
     # Calculate percentage difference, handle division by zero
     merged_df['percentage_difference'] = (
@@ -94,9 +94,9 @@ def calculate_percentage_difference(fpn_df, abv_df):
 #----------------------------------------------------------------------------------------------------------------#
 
 # Define the variables for interval selection and BMU ID
-start_date = '2023-01-02'  # Example: 'YYYY-MM-DD'
+start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
 end_date = '2023-01-10'  # Must be the day above the final day you desire
-bmu = 'T_DNLWW-1'  
+bmu = 'E_MOYEW-1'  
 # Windfarms: 
 #   'E_MOYEW-1' - FPN seems to be way above generation
 #   'T_FARR-1' - FPN seems to correlate with generation
@@ -110,23 +110,17 @@ bmu = 'T_DNLWW-1'
 fpn_df = fpn_data_collector(start_date, end_date, bmu)
 boalf_df = boalf3_data_collector(start_date, end_date, bmu)
 abv_df = abv_data_collector(start_date, end_date, bmu)
-
-# Create plot for BMU comparison
-# BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+abv_df['vol'] = abv_df['vol'] * 2 # Counteract the MWh values of the real generation
 
 # Create a new dataframe with percentage differences
 percentage_diff_df = calculate_percentage_difference(fpn_df, abv_df)
+print("\nPercentage Difference Data:")
+#print(percentage_diff_df)
 
 # Calculate average percentage difference
 average_percentage_diff = percentage_diff_df['percentage_difference'].mean()
+print(f'\nAverage Percentage Difference: {round(average_percentage_diff,2)}%')
 
-# Print the results
-print("FPN Data:")
-print(fpn_df)
-print("\nBOALF Data:")
-print(boalf_df)
-print("\nABV Data:")
-print(abv_df)
-print("\nPercentage Difference Data:")
-print(percentage_diff_df)
-print(f'\nAverage Percentage Difference: {average_percentage_diff}%')
+# Create plot for BMU comparison
+BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+
