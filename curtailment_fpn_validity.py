@@ -98,8 +98,8 @@ def calculate_and_save_percentage_difference(bmu_df, start_date, end_date):
 #----------------------------------------------------------------------------------------------------------------#
 
 # Define the variables for interval selection
-start_date = '2024-01-01'  # Example: 'YYYY-MM-DD'
-end_date = '2024-02-01'  # Must be the day above the final day you desire
+start_date = '2022-01-01'  # Example: 'YYYY-MM-DD'
+end_date = '2022-02-01'  # Must be the day above the final day you desire
 
 # Collect the dataset using the functions for all BMUs and save results to Excel
 bmu_df = bmuid_data_collector()

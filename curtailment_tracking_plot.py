@@ -33,39 +33,33 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     lines = []
     labels = []
 
-    # Plot FPN data
-    if not fpn_df.empty:
-        line1, = ax.plot(convert_to_mpl_datetime(fpn_df['ts']), fpn_df['vp'], marker='o', label=f'{bmu} - FPN')
-        lines.append(line1)
-        labels.append(f'{bmu} - FPN')
+    # Check if there are any BOALF values
+    has_boalf_values = not boalf_df.empty
 
-    # Plot BOALF data
-    if not boalf_df.empty:
-        #line, = ax.plot(boalf_df['ts'], boalf_df['va'], marker='o', label=f'{bmu} - BOALF', color='orange')
-        #lines.append(line)
-        #labels.append(f'{bmu} - BOALF')
-    
-        boalf_df['ts'] = pd.to_datetime(boalf_df['ts'])  # Convert 'ts' to datetime
-        boalf_df['time_diff'] = boalf_df['ts'].diff().dt.total_seconds() / 60.0  # Calculate time differences in minutes
-        split_indices = boalf_df[boalf_df['time_diff'] > 30].index.tolist()
-        split_indices.insert(0, 0)
-        split_indices.append(len(boalf_df))
-
-        for i in range(len(split_indices) - 1):
-            sub_boalf_df = boalf_df.iloc[split_indices[i]:split_indices[i + 1]]
-            line, = ax.plot(sub_boalf_df['ts'], sub_boalf_df['va'], marker='o', label=f'{bmu} - BOALF {i + 1}', color='orange')
-            lines.append(line)
-            labels.append(f'{bmu} - BOALF {i + 1}')
+    # Plot grey background for BOALF intervals
+    if has_boalf_values:
+        boalf_intervals = boalf_df['ts']
+        for boalf_time in boalf_intervals:
+            boalf_start = boalf_time - timedelta(minutes=30)
+            boalf_end = boalf_time + timedelta(minutes=30)
+            ax.fill_between(convert_to_mpl_datetime(fpn_df['ts']), 0, fpn_df['vp'], where=((convert_to_mpl_datetime(fpn_df['ts']) >= boalf_start) & (convert_to_mpl_datetime(fpn_df['ts']) <= boalf_end)), color='indianred', alpha=1, zorder=1)
 
     # Plot ABV data
     if not abv_df.empty:
         abv_df['sd'] = abv_df['sd'].astype(str)  # Convert 'sd' to string
         abv_df['ts'] = abv_df.apply(lambda row: merge_sd_sp_to_timestamp(row['sd'], row['sp']), axis=1)
-        line3, = ax.plot(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], marker='o', label=f'{bmu} - ABV', color='blue')
+        line3, = ax.plot(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], marker='.', label=f'{bmu} - ABV', color='dodgerblue', zorder=2)
         lines.append(line3)
         labels.append(f'{bmu} - ABV')
+        # Shade the area under the ABV plot
+        ax.fill_between(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], color='dodgerblue', alpha=1)
 
-    #ax.legend(lines, labels, loc='upper left')  # Adjust legend position
+    # Plot FPN data
+    if not fpn_df.empty:
+        line1, = ax.plot(convert_to_mpl_datetime(fpn_df['ts']), fpn_df['vp'], marker='.', label=f'{bmu} - FPN', color='orange', zorder=3)
+        lines.append(line1)
+        labels.append(f'{bmu} - FPN')
+
     ax.set_title(f'Time vs MW Plot for {bmu}')
     ax.set_xlabel('Time')
     ax.set_ylabel('MW Values')
@@ -84,6 +78,7 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     check.on_clicked(toggle_func)
 
     plt.show()
+
 
 #----------------------------------------------------------------------------------------------------------------#
 
@@ -172,4 +167,5 @@ calculate_total_percentage_difference(fpn_df, abv_df)
 
 # Plot FPN, actual output, curtailment
 BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+
 
