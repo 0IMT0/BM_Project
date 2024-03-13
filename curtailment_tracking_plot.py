@@ -36,23 +36,24 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     # Check if there are any BOALF values
     has_boalf_values = not boalf_df.empty
 
-    # Plot grey background for BOALF intervals
+    # Plot ABV data
+    if not abv_df.empty:
+        abv_df['sd'] = abv_df['sd'].astype(str)  # Convert 'sd' to string
+        abv_df['ts'] = abv_df.apply(lambda row: merge_sd_sp_to_timestamp(row['sd'], row['sp']), axis=1)
+        line3, = ax.plot(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], marker='.', label=f'{bmu} - ABV', color='dodgerblue', zorder=1)
+        lines.append(line3)
+        labels.append(f'{bmu} - ABV')
+        # Shade the area under the ABV plot
+        ax.fill_between(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], color='dodgerblue', alpha=1)
+
+    # Plot red background for BOALF intervals
     if has_boalf_values:
         boalf_intervals = boalf_df['ts']
         for boalf_time in boalf_intervals:
             boalf_start = boalf_time - timedelta(minutes=30)
             boalf_end = boalf_time + timedelta(minutes=30)
-            ax.fill_between(convert_to_mpl_datetime(fpn_df['ts']), 0, fpn_df['vp'], where=((convert_to_mpl_datetime(fpn_df['ts']) >= boalf_start) & (convert_to_mpl_datetime(fpn_df['ts']) <= boalf_end)), color='indianred', alpha=1, zorder=1)
-
-    # Plot ABV data
-    if not abv_df.empty:
-        abv_df['sd'] = abv_df['sd'].astype(str)  # Convert 'sd' to string
-        abv_df['ts'] = abv_df.apply(lambda row: merge_sd_sp_to_timestamp(row['sd'], row['sp']), axis=1)
-        line3, = ax.plot(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], marker='.', label=f'{bmu} - ABV', color='dodgerblue', zorder=2)
-        lines.append(line3)
-        labels.append(f'{bmu} - ABV')
-        # Shade the area under the ABV plot
-        ax.fill_between(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], color='dodgerblue', alpha=1)
+            min_boalf_value = boalf_df[(boalf_df['ts'] >= boalf_start) & (boalf_df['ts'] <= boalf_end)]['va'].min()
+            ax.fill_between(convert_to_mpl_datetime(fpn_df['ts']), min_boalf_value, fpn_df['vp'], where=((convert_to_mpl_datetime(fpn_df['ts']) >= boalf_start) & (convert_to_mpl_datetime(fpn_df['ts']) <= boalf_end)), color='indianred', alpha=1, zorder=2)
 
     # Plot FPN data
     if not fpn_df.empty:
@@ -78,7 +79,6 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     check.on_clicked(toggle_func)
 
     plt.show()
-
 
 #----------------------------------------------------------------------------------------------------------------#
 
@@ -157,6 +157,7 @@ bmu = 'T_DUNGW-1'
 # Collect the dataset using the functions for the BMU
 fpn_df = fpn_data_collector(start_date, end_date, bmu)
 boalf_df = boalf3_data_collector(start_date, end_date, bmu)
+print(boalf_df)
 abv_df = abv_data_collector(start_date, end_date, bmu)
 abv_df['vol'] = abv_df['vol'] * 2  # Counteract the MWh values of the real generation
 
