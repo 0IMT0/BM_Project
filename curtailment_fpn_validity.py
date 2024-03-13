@@ -56,6 +56,9 @@ def percentage_difference(fpn_df, boalf_df, abv_df):
 #----------------------------------------------------------------------------------------------------------------#
 
 def calculate_and_save_percentage_difference(bmu_df, start_date, end_date):
+    # Filter out BMU IDs starting with 'C'
+    bmu_df = bmu_df[~bmu_df['id'].str.startswith('C')]
+
     # Create an empty DataFrame to store results
     results_df = pd.DataFrame(columns=['BMU_ID', 'Total_VOL', 'Total_VP', 'Percentage_Difference'])
 
@@ -66,6 +69,7 @@ def calculate_and_save_percentage_difference(bmu_df, start_date, end_date):
         fpn_df = fpn_data_collector(start_date, end_date, bmu_id)
         boalf_df = boalf3_data_collector(start_date, end_date, bmu_id)
         abv_df = abv_data_collector(start_date, end_date, bmu_id)
+        abv_df['vol'] = abv_df['vol'] * 2  # Counteract the MWh values of the real generation
 
         # Check if any of the data frames is empty, skip BMU if true
         if fpn_df.empty or boalf_df.empty or abv_df.empty:
@@ -94,8 +98,8 @@ def calculate_and_save_percentage_difference(bmu_df, start_date, end_date):
 #----------------------------------------------------------------------------------------------------------------#
 
 # Define the variables for interval selection
-start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
-end_date = '2023-02-01'  # Must be the day above the final day you desire
+start_date = '2024-01-01'  # Example: 'YYYY-MM-DD'
+end_date = '2024-02-01'  # Must be the day above the final day you desire
 
 # Collect the dataset using the functions for all BMUs and save results to Excel
 bmu_df = bmuid_data_collector()

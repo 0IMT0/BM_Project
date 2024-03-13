@@ -226,7 +226,7 @@ def fpn_data_collector(start_date, end_date, bmu):
     where bmra_fpn.sd >= '{start_date}'
         and bmra_fpn.sd < '{end_date}'
         and bmu_id = '{bmu}'
-    order by bmra_fpnlevel.ts;
+    order by bmra_fpnlevel.ts, bmra_fpn.sd, bmra_fpn.sp;
     """
     # Execute SQL query and read the data into a DataFrame
     fpn_data = pd.read_sql(sql_bmra_fpn, database_login())
@@ -291,7 +291,7 @@ def abv_data_collector(start_date, end_date, bmu):
     return abv_data
 
 #----------------------------------------------------------------------------------------------------------------#
-# Curtailment Analyser 
+# Curtailment Analyser Data
 #----------------------------------------------------------------------------------------------------------------#
 
 def boav2_data_collector(start_date, end_date):
@@ -326,7 +326,6 @@ def bmuid_data_collector():
     select id
     from bmra_bmu
     where (type_id = 'WON' OR type_id = 'WOFF')
-        and not id like 'C%'
     """
 
     # Execute SQL query and read the data into a DataFrame

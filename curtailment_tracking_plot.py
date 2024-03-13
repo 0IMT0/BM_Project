@@ -35,12 +35,16 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
 
     # Plot FPN data
     if not fpn_df.empty:
-        line1, = ax.plot(convert_to_mpl_datetime(fpn_df['ts']), fpn_df['vp'], marker='o', label=f'{bmu} - Final Physical Notification')
+        line1, = ax.plot(convert_to_mpl_datetime(fpn_df['ts']), fpn_df['vp'], marker='o', label=f'{bmu} - FPN')
         lines.append(line1)
-        labels.append(f'{bmu} - Final Physical Notification')
+        labels.append(f'{bmu} - FPN')
 
     # Plot BOALF data
     if not boalf_df.empty:
+        #line, = ax.plot(boalf_df['ts'], boalf_df['va'], marker='o', label=f'{bmu} - BOALF', color='orange')
+        #lines.append(line)
+        #labels.append(f'{bmu} - BOALF')
+    
         boalf_df['ts'] = pd.to_datetime(boalf_df['ts'])  # Convert 'ts' to datetime
         boalf_df['time_diff'] = boalf_df['ts'].diff().dt.total_seconds() / 60.0  # Calculate time differences in minutes
         split_indices = boalf_df[boalf_df['time_diff'] > 30].index.tolist()
@@ -61,7 +65,7 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
         lines.append(line3)
         labels.append(f'{bmu} - ABV')
 
-    ax.legend(lines, labels, loc='upper left')  # Adjust legend position
+    #ax.legend(lines, labels, loc='upper left')  # Adjust legend position
     ax.set_title(f'Time vs MW Plot for {bmu}')
     ax.set_xlabel('Time')
     ax.set_ylabel('MW Values')
@@ -124,10 +128,6 @@ def calculate_percentage_difference(fpn_df, boalf_df, abv_df):
 
 #----------------------------------------------------------------------------------------------------------------#
 
-
-
-#----------------------------------------------------------------------------------------------------------------#
-
 def calculate_total_percentage_difference(fpn_df, abv_df):
     # Calculate total differences between 'vol' and 'vp'
     total_vol = abv_df['vol'].sum()
@@ -139,7 +139,7 @@ def calculate_total_percentage_difference(fpn_df, abv_df):
 
     print(f'\nTotal Vol: {total_vol} MWh')
     print(f'Total VP: {total_vp} MWh')
-    print(f'Percentage Difference: {round(percentage_difference, 2)}%')
+    print(f'Percentage Difference (with curtailment): {round(percentage_difference, 2)}%')
 
 
 #----------------------------------------------------------------------------------------------------------------#
@@ -149,7 +149,7 @@ def calculate_total_percentage_difference(fpn_df, abv_df):
 # Define the variables for interval selection and BMU ID
 start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
 end_date = '2023-02-01'  # Must be the day above the final day you desire
-bmu = 'T_FARR-1'  
+bmu = 'E_MOYEW-1'  
 # Windfarms:                    10 days, 1 month (-ve: FPN larger than output)
 #   'E_MOYEW-1' - FPN above, -21.00%, -28.53%
 #   'T_FARR-1' - FPN over estimates, -67.72%, -24.6%
@@ -171,5 +171,5 @@ calculate_percentage_difference(fpn_df, boalf_df, abv_df)
 calculate_total_percentage_difference(fpn_df, abv_df)
 
 # Plot FPN, actual output, curtailment
-#BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
 

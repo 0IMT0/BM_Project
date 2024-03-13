@@ -17,3 +17,5 @@ def create_flowchart():
 
 if __name__ == "__main__":
     create_flowchart()
+
+create_flowchart()
