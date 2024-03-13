@@ -148,8 +148,8 @@ def calculate_total_percentage_difference(fpn_df, abv_df):
 
 # Define the variables for interval selection and BMU ID
 start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
-end_date = '2023-02-01'  # Must be the day above the final day you desire
-bmu = 'E_MOYEW-1'  
+end_date = '2023-01-10'  # Must be the day above the final day you desire
+bmu = 'T_DUNGW-1'  
 # Windfarms:                    10 days, 1 month (-ve: FPN larger than output)
 #   'E_MOYEW-1' - FPN above, -21.00%, -28.53%
 #   'T_FARR-1' - FPN over estimates, -67.72%, -24.6%
