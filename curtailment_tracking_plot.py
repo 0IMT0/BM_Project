@@ -1,7 +1,6 @@
 from database_collector import fpn_data_collector, boalf3_data_collector, abv_data_collector
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.widgets import CheckButtons
 from datetime import datetime, timedelta
 import numpy as np
 
@@ -83,7 +82,9 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
 
 #----------------------------------------------------------------------------------------------------------------#
 
-def calculate_percentage_difference(fpn_df, boalf_df, abv_df):
+def calculate_percentage_difference(fpn_df, boalf_df, abv_df, bmu, start_date, save_merged_df=False):
+    # Define the variables for interval selection and BMU ID
+    
     # Extract BOALF intervals and create a list of intervals to exclude
     boalf_intervals = boalf_df['ts']
     exclude_intervals = []
@@ -122,6 +123,13 @@ def calculate_percentage_difference(fpn_df, boalf_df, abv_df):
     print(f'Total FPN (vp): {total_vp} MW')
     print(f'Percentage Difference: {round(percentage_difference, 2)}%')
 
+    if save_merged_df:
+        file_name = f"percentage_data_{bmu}_{start_date}.xlsx"
+        merged_df.to_excel(file_name, index=False)
+        print(f'\nMerged dataframe saved as {file_name}')
+
+    return merged_df
+
 #----------------------------------------------------------------------------------------------------------------#
 
 def calculate_total_percentage_difference(fpn_df, abv_df):
@@ -137,6 +145,19 @@ def calculate_total_percentage_difference(fpn_df, abv_df):
     print(f'Total VP: {total_vp} MWh')
     print(f'Percentage Difference (with curtailment): {round(percentage_difference, 2)}%')
 
+#----------------------------------------------------------------------------------------------------------------#
+
+def generate_scatter_plot(merged_df, bmu):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    ax.scatter(merged_df['vp'], merged_df['vol'], color='blue', alpha=0.5)
+    
+    ax.set_title(f'Real Generation vs FPN for {bmu}', fontsize=18)
+    ax.set_xlabel('VP (MW)', fontsize=16)
+    ax.set_ylabel('VOL (MW)', fontsize=16)
+    ax.grid(True)
+    
+    plt.show()
 
 #----------------------------------------------------------------------------------------------------------------#
 # MAIN SECTION OF SKIPRATE SCRIPT 
@@ -145,7 +166,7 @@ def calculate_total_percentage_difference(fpn_df, abv_df):
 # Define the variables for interval selection and BMU ID
 start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
 end_date = '2023-02-01'  # Must be the day above the final day you desire
-bmu = 'T_LCLTW-1'  
+bmu = 'T_WISTW-2'  
 # Windfarms:                    10 days, 1 month (-ve: FPN larger than output)
 #   'E_MOYEW-1' - FPN above, -21.00%, -28.53%
 #   'T_FARR-1' - FPN over estimates, -67.72%, -24.6%
@@ -162,11 +183,10 @@ abv_df = abv_data_collector(start_date, end_date, bmu)
 abv_df['vol'] = abv_df['vol'] * 2  # Counteract the MWh values of the real generation
 
 # Create a new dataframe with percentage differences
-calculate_percentage_difference(fpn_df, boalf_df, abv_df)
+merged_df = calculate_percentage_difference(fpn_df, boalf_df, abv_df, bmu, start_date, save_merged_df=False)
+generate_scatter_plot(merged_df, bmu)
 
 calculate_total_percentage_difference(fpn_df, abv_df)
 
 # Plot FPN, actual output, curtailment
-BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
-
-
+#BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)

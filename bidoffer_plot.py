@@ -1,83 +1,86 @@
 from database_access import database_login
 import pandas as pd
+import os
+import matplotlib.pyplot as plt
 
-# Specify the date for filtering (1 min interval)
-start_date = "2023-01-18 15:01:00+00"
-end_date = "2023-01-18 15:02:00+00"
+#----------------------------------------------------------------------------------------------------------------#
+# FUNCTIONS
+#----------------------------------------------------------------------------------------------------------------#
 
-# Your SQL query with the WHERE clause for the specified date
-sql_bmra_bod = f"""
-SELECT*
-FROM bmra_bod
-WHERE ts >= '{start_date}' AND ts < '{end_date}';
-"""
-# Execute your SQL query and read the data into a DataFrame
-bod_data = pd.read_sql(sql_bmra_bod, database_login())
-#print(bod_data)  # Display DataFrame
-
+# Function to check if DataFrame exists in project file
+def check_if_df_exists(date, thirty_min):
+    file_name_bid = f"SR_{date}_{thirty_min}_bid.pkl"
+    file_name_offer = f"SR_{date}_{thirty_min}_offer.pkl"
+    return os.path.isfile(file_name_bid) and os.path.isfile(file_name_offer)
 
 def plot_bod_1():
-    import matplotlib.pyplot as plt
-    import pandas as pd
+    # Sort bid and offer dataframes by price in ascending order
+    bid_data_sorted = bid_data.sort_values(by='bp')
+    offer_data_sorted = offer_data.sort_values(by='op')
 
-    # Assuming 'nn' is a column in the DataFrame
-    under_fpn_data = bod_data[bod_data['nn'] < 0]
-    above_fpn_data = bod_data[bod_data['nn'] > 0]
+    # Calculate cumulative volume for bids
+    bid_cumulative_volume = bid_data_sorted['vb1'].cumsum()
 
-    # Plotting bid-offer curve for 'under FPN'
-    plt.scatter(under_fpn_data['vb1'], under_fpn_data['bp'], label='Bid', marker='o')
-    plt.scatter(under_fpn_data['vb1'], under_fpn_data['op'], label='Offer', marker='o')
+    # Calculate cumulative volume for offers
+    offer_cumulative_volume = offer_data_sorted['vb1'].cumsum()
+
+    # Plot bid-offer curve for 'under FPN' (bids)
+    plt.scatter(bid_cumulative_volume, bid_data_sorted['bp'], label='Bid', color='blue')
+
+    # Plot bid-offer curve for 'above FPN' (offers)
+    plt.scatter(offer_cumulative_volume, offer_data_sorted['op'], label='Offer', color='red')
 
     # Adding labels and title
-    plt.xlabel('Volume (MW)')
+    plt.xlabel('Cumulative Volume (MW)')
     plt.ylabel('Price (£/MWh)')
-    plt.title('Bid-Offer - Under FPN')
+    plt.title('Bid-Offer Cumulative Volume vs Price')
     plt.legend()  # Show legend
 
     # Display the plot
     plt.grid(True)
     plt.show()
 
-    # Plotting bid-offer curve for 'above FPN'
-    plt.scatter(above_fpn_data['vb1'], above_fpn_data['bp'], label='Bid', marker='o')
-    plt.scatter(above_fpn_data['vb1'], above_fpn_data['op'], label='Offer', marker='o')
+#----------------------------------------------------------------------------------------------------------------#
+# MAIN SECTION OF Curtailment Analyser SCRIPT 
+#----------------------------------------------------------------------------------------------------------------#
 
-    # Adding labels and title
-    plt.xlabel('Volume (MW)')
-    plt.ylabel('Price (£/MWh)')
-    plt.title('Bid-Offer - Above FPN')
-    plt.legend()  # Show legend
+# Specify the date for filtering (1 min interval)
+date = "2023-01-18"
+thirty_min = 31
 
-    # Display the plot
-    plt.grid(True)
-    plt.show()
+# Check if DataFrame files exist
+if check_if_df_exists(date, thirty_min):
+    # Load DataFrames from project files
+    bid_data = pd.read_pickle(f"SR_{date}_{thirty_min}_bid.pkl")
+    offer_data = pd.read_pickle(f"SR_{date}_{thirty_min}_offer.pkl")
+else:
+    # Bid SQL
+    sql_bmra_bod_bid = f"""
+    SELECT *
+    FROM bmra_bod
+    WHERE sd = '{date}'
+        AND sp = '{thirty_min}'
+        AND nn < 0
+        AND NOT (op = 0 AND bp = 0 AND vb1 = 0 AND vb2 = 0);
+    """
 
+    # Offer SQL 
+    sql_bmra_bod_offer = f"""
+    SELECT *
+    FROM bmra_bod
+    WHERE sd = '{date}'
+        AND sp = '{thirty_min}'
+        AND nn > 0
+        AND NOT (op = 0 AND bp = 0 AND vb1 = 0 AND vb2 = 0);
+    """
 
-def plot_bod_2():
-    import matplotlib.pyplot as plt
+    # Execute SQL queries and read the data into DataFrames
+    bid_data = pd.read_sql(sql_bmra_bod_bid, database_login())
+    offer_data = pd.read_sql(sql_bmra_bod_offer, database_login())
 
-    # Assuming 'bod_data' is already loaded with the required data
+    # Save DataFrames to project files
+    bid_data.to_pickle(f"SR_{date}_{thirty_min}_bid.pkl")
+    offer_data.to_pickle(f"SR_{date}_{thirty_min}_offer.pkl")
 
-    # Filter rows where not all values are zero for op, bp, vb1, vb2
-    non_zero_rows = bod_data[(bod_data[['op', 'bp', 'vb1', 'vb2']] != 0).all(axis=1)]
-
-    # Plotting the first scatter plot (op vs vb1)
-    plt.figure(figsize=(10, 5))
-    plt.scatter(non_zero_rows['vb1'], non_zero_rows['op'])
-    plt.title('Scatter Plot of op vs vb1')
-    plt.xlabel('vb1 (MW)')
-    plt.ylabel('op (£/MWh)')
-    plt.grid(True)
-    plt.show()
-
-    # Plotting the second scatter plot (bp vs vb1)
-    plt.figure(figsize=(10, 5))
-    plt.scatter(non_zero_rows['vb1'], non_zero_rows['bp'])
-    plt.title('Scatter Plot of bp vs vb1')
-    plt.xlabel('vb1 (MW)')
-    plt.ylabel('bp (£/MWh)')
-    plt.grid(True)
-    plt.show()
-
-
+# Call the plotting function
 plot_bod_1()
