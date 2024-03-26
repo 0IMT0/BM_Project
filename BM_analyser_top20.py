@@ -1,8 +1,8 @@
 import pandas as pd
 from database_collector import boalf_an_data_collector
 
-start_date = '2024-01-01'
-end_date = '2024-03-01'
+start_date = '2023-01-01'
+end_date = '2024-01-01'
 
 boalf_df = boalf_an_data_collector(start_date, end_date)
 

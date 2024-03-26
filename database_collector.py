@@ -303,7 +303,7 @@ def boav2_data_collector(start_date, end_date):
     left join bmra_bmu
         on bmra_bmu.id = bmra_boav.bmu_id
     where bmra_boav.ts >= '{start_date}'
-        and bmra_boav.ts <= '{end_date}'
+        and bmra_boav.ts < '{end_date}'
         and (bmra_bmu.type_id = 'WON' OR bmra_bmu.type_id = 'WOFF')
     order by bmra_boav.ts;
     """

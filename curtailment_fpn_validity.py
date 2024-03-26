@@ -122,8 +122,8 @@ def monthly_percentage_difference(bmu_df, start_month, end_month):
 #----------------------------------------------------------------------------------------------------------------#
 
 # Define the variables for month selection
-start_month = datetime.strptime('2023-03-01', '%Y-%m-%d').date()
-end_month = datetime.strptime('2023-04-01', '%Y-%m-%d').date()
+start_month = datetime.strptime('2021-01-01', '%Y-%m-%d').date()
+end_month = datetime.strptime('2021-02-01', '%Y-%m-%d').date()
 
 # Collect the dataset using the functions for all BMUs and save results to Excel
 bmu_df = bmuid_data_collector()

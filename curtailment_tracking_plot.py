@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import numpy as np
+from matplotlib.widgets import CheckButtons
+from scipy.stats import linregress
 
 #----------------------------------------------------------------------------------------------------------------#
 # FUNCTIONS
@@ -27,7 +29,7 @@ def convert_to_mpl_datetime(ts_str):
 # Function to create plot for BMU comparison
 def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     fig, ax = plt.subplots(figsize=(10, 6))
-    plt.subplots_adjust(left=0.2, bottom=0.2)
+    plt.subplots_adjust(left=0.1, bottom=0.2, right=0.8)
 
     lines = []
     labels = []
@@ -39,9 +41,9 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
     if not abv_df.empty:
         abv_df['sd'] = abv_df['sd'].astype(str)  # Convert 'sd' to string
         abv_df['ts'] = abv_df.apply(lambda row: merge_sd_sp_to_timestamp(row['sd'], row['sp']), axis=1)
-        line3, = ax.plot(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], marker='.', label=f'{bmu} - ABV', color='dodgerblue', zorder=1)
+        line3, = ax.plot(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], marker='.', label='Real', color='dodgerblue', zorder=1)
         lines.append(line3)
-        labels.append(f'{bmu} - ABV')
+        labels.append('Real')
         # Shade the area under the ABV plot
         ax.fill_between(convert_to_mpl_datetime(abv_df['ts']), abv_df['vol'], color='dodgerblue', alpha=1)
 
@@ -53,38 +55,43 @@ def BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu):
             boalf_end = boalf_time + timedelta(minutes=30)
             min_boalf_value = boalf_df[(boalf_df['ts'] >= boalf_start) & (boalf_df['ts'] <= boalf_end)]['va'].min()
             ax.fill_between(convert_to_mpl_datetime(fpn_df['ts']), min_boalf_value, fpn_df['vp'], where=((convert_to_mpl_datetime(fpn_df['ts']) >= boalf_start) & (convert_to_mpl_datetime(fpn_df['ts']) <= boalf_end)), color='indianred', alpha=1, zorder=2)
+        
+        # Add the 'Curtailment' label for the red area
+        line_curtailment, = ax.plot([], [], color='indianred', label='Curtailment')
+        lines.append(line_curtailment)
 
     # Plot FPN data
     if not fpn_df.empty:
-        line1, = ax.plot(convert_to_mpl_datetime(fpn_df['ts']), fpn_df['vp'], marker='.', label=f'{bmu} - FPN', color='orange', zorder=3)
+        line1, = ax.plot(convert_to_mpl_datetime(fpn_df['ts']), fpn_df['vp'], marker='.', label='Forecast', color='orange', zorder=3)
         lines.append(line1)
-        labels.append(f'{bmu} - FPN')
+        labels.append('Forecast')
 
-    ax.set_title(f'Generation vs Time Plot for {bmu}', fontsize=18)
-    ax.set_xlabel('Date/Time', fontsize=18) 
-    ax.set_ylabel('Generation (MW)', fontsize=18)  
+    ax.set_title(f'Generation vs Time Plot for {bmu}', fontsize=28)
+    ax.set_xlabel('Date/Time (MM-DD hh)', fontsize=24) 
+    ax.set_ylabel('Generation (MW)', fontsize=24)  
     ax.tick_params(axis='x', rotation=45, labelsize=16) 
     ax.tick_params(axis='y', labelsize=16)
+    ax.legend(loc='upper left', fontsize=16, bbox_to_anchor=(1.01, 0.5), borderaxespad=0)
+    #ax.set_ylim([0, 65])
+
 
     # Add a toggle button
-    ax_toggle = plt.axes([0.02, 0.5, 0.1, 0.06])  # Adjust position of toggle box within the figure
-    check = CheckButtons(ax_toggle, ['FPN', 'BOALF', 'ABV'], [True, True, True])
+#    ax_toggle = plt.axes([0.02, 0.5, 0.1, 0.06])  # Adjust position of toggle box within the figure
+#    check = CheckButtons(ax_toggle, ['FPN', 'BOALF', 'ABV'], [True, True, True])
 
-    def toggle_func(label):
-        for line in lines:
-            if label in line.get_label():
-                line.set_visible(not line.get_visible())
-        plt.draw()
+#    def toggle_func(label):
+#        for line in lines:
+#            if label in line.get_label():
+#                line.set_visible(not line.get_visible())
+#        plt.draw()
 
-    #check.on_clicked(toggle_func)
+#    check.on_clicked(toggle_func)
 
     plt.show()
 
 #----------------------------------------------------------------------------------------------------------------#
 
 def calculate_percentage_difference(fpn_df, boalf_df, abv_df, bmu, start_date, save_merged_df=False):
-    # Define the variables for interval selection and BMU ID
-    
     # Extract BOALF intervals and create a list of intervals to exclude
     boalf_intervals = boalf_df['ts']
     exclude_intervals = []
@@ -119,9 +126,13 @@ def calculate_percentage_difference(fpn_df, boalf_df, abv_df, bmu, start_date, s
     percentage_difference = ((total_vol - total_vp) / total_vp)
     percentage_difference = np.nan_to_num(percentage_difference) * 100
 
+    # Calculate curtailment instruction value
+    curtailment_instruction = boalf_df.shape[0]  # Number of rows in boalf_df
+
     print(f'\nTotal ABV (vol): {total_vol} MW')
     print(f'Total FPN (vp): {total_vp} MW')
     print(f'Percentage Difference: {round(percentage_difference, 2)}%')
+    print(f'Curtailment Instructions: {curtailment_instruction}')
 
     if save_merged_df:
         file_name = f"percentage_data_{bmu}_{start_date}.xlsx"
@@ -150,14 +161,29 @@ def calculate_total_percentage_difference(fpn_df, abv_df):
 def generate_scatter_plot(merged_df, bmu):
     fig, ax = plt.subplots(figsize=(10, 6))
     
-    ax.scatter(merged_df['vp'], merged_df['vol'], color='blue', alpha=0.5)
+    # Scatter plot darkorange
+    ax.scatter(merged_df['vp'], merged_df['vol'], color='dodgerblue', alpha=0.5)
     
-    ax.set_title(f'Real Generation vs FPN for {bmu}', fontsize=18)
-    ax.set_xlabel('VP (MW)', fontsize=16)
-    ax.set_ylabel('VOL (MW)', fontsize=16)
+    # Calculate correlation coefficient
+    correlation_coefficient = np.corrcoef(merged_df['vp'], merged_df['vol'])[0, 1]
+    print(f'Correlation Coefficient: {correlation_coefficient}')
+
+    # Perform linear regression
+    slope, intercept, _, _, _ = linregress(merged_df['vp'], merged_df['vol'])
+    
+    # Plot line of best fit
+    #ax.plot(merged_df['vp'], slope * merged_df['vp'] + intercept, color='black', label=f'Line of Best Fit (Correlation Coefficient: {correlation_coefficient:.2f})')
+    
+    ax.set_title(f'Real vs Forecast Generation Scatter Plot', fontsize=28)
+    ax.set_xlabel('Forecast Generation (MW)', fontsize=24)
+    ax.set_ylabel('Real Generation (MW)', fontsize=24)
+    ax.tick_params(axis='x', rotation=45, labelsize=16) 
+    ax.tick_params(axis='y', labelsize=16)
     ax.grid(True)
+    ax.legend(fontsize=16)
     
     plt.show()
+
 
 #----------------------------------------------------------------------------------------------------------------#
 # MAIN SECTION OF SKIPRATE SCRIPT 
@@ -165,8 +191,9 @@ def generate_scatter_plot(merged_df, bmu):
 
 # Define the variables for interval selection and BMU ID
 start_date = '2023-01-01'  # Example: 'YYYY-MM-DD'
-end_date = '2023-02-01'  # Must be the day above the final day you desire
-bmu = 'T_WISTW-2'  
+end_date = '2023-03-10'  # Must be the day above the final day you desire
+bmu = 'T_FARR-1'  
+
 # Windfarms:                    10 days, 1 month (-ve: FPN larger than output)
 #   'E_MOYEW-1' - FPN above, -21.00%, -28.53%
 #   'T_FARR-1' - FPN over estimates, -67.72%, -24.6%
@@ -184,9 +211,9 @@ abv_df['vol'] = abv_df['vol'] * 2  # Counteract the MWh values of the real gener
 
 # Create a new dataframe with percentage differences
 merged_df = calculate_percentage_difference(fpn_df, boalf_df, abv_df, bmu, start_date, save_merged_df=False)
-generate_scatter_plot(merged_df, bmu)
+#generate_scatter_plot(merged_df, bmu)
 
 calculate_total_percentage_difference(fpn_df, abv_df)
 
 # Plot FPN, actual output, curtailment
-#BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
+BMU_plot_comparator(fpn_df, boalf_df, abv_df, bmu)
