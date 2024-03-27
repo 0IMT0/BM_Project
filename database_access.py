@@ -7,7 +7,7 @@ def database_login():   # Personal code for database access.
     
     db_user = 'ElexonDataReadOnly'
     db_host = 'eee-aesg-gh.ds.strath.ac.uk'
-    db_password = 'tr3BN9bKoA8kPe'
+    db_password = '' # Not provided
     db_name = 'ElexonData'
     db_url = f"postgresql://{db_user}:{db_password}@{db_host}/{db_name}"
     engine = create_engine(db_url)
